@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="author" content="Tr. Sara Nabil">
+    <title>Number Adventure</title>
+    <style>
+        :root {
+            --bg-gradient-1: #a1c4fd;
+            --bg-gradient-2: #c2e9fb;
+            --text-color: #263238;
+            --primary-btn: #ffb74d;
+            --secondary-btn: #64b5f6;
+            --accent-btn: #81c784;
+            --correct-color: #4caf50;
+            --wrong-color: #f44336;
+            --card-bg: #ffffff;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        @keyframes scrollBackground {
+            0% { background-position: 0 0, 0 0; }
+            100% { background-position: 300px 300px, 0 0; }
+        }
+
+        body {
+            font-family: 'Comic Sans MS', 'Chalkboard SE', 'Marker Felt', 'Tajawal', 'Cairo', sans-serif;
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            overflow: hidden;
+            
+            /* خلفية المغامرة الجذابة باستخدام SVG مضمن و Gradient */
+            background-color: var(--bg-gradient-1);
+            background-image: 
+                url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cg fill-opacity='0.25'%3E%3Ctext x='30' y='50' font-size='40' font-family='Arial' fill='%23ff9800' font-weight='bold'%3E1%3C/text%3E%3Ctext x='200' y='120' font-size='50' font-family='Arial' fill='%23e91e63' font-weight='bold'%3E2%3C/text%3E%3Ctext x='80' y='250' font-size='60' font-family='Arial' fill='%234caf50' font-weight='bold'%3E3%3C/text%3E%3Ctext x='250' y='280' font-size='35' font-family='Arial' fill='%239c27b0' font-weight='bold'%3E4%3C/text%3E%3Ccircle cx='150' cy='60' r='18' fill='%2300bcd4'/%3E%3Cpolygon points='50,150 75,195 25,195' fill='%23ff9800'/%3E%3Crect x='220' y='30' width='25' height='25' fill='%23ff5722' transform='rotate(45 232 42)'/%3E%3Cpath d='M110 180 Q130 140 150 180 T190 180' fill='none' stroke='%233f51b5' stroke-width='7' stroke-linecap='round'/%3E%3C/g%3E%3C/svg%3E"),
+                linear-gradient(135deg, var(--bg-gradient-1) 0%, var(--bg-gradient-2) 100%);
+            background-size: 300px 300px, 100% 100%;
+            animation: scrollBackground 40s linear infinite;
+        }
+
+        .screen {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 95%;
+            max-width: 500px;
+            min-height: 85vh;
+            padding: 30px 20px;
+            text-align: center;
+            
+            /* تصميم البطاقة البيضاء لإبراز المحتوى فوق الخلفية */
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 40px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15), inset 0 0 0 6px rgba(255,255,255,0.7);
+            border: 2px solid rgba(255, 255, 255, 0.4);
+            margin: auto;
+        }
+
+        .screen.active {
+            display: flex;
+            animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0.9); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        /* عنوان كرتوني جذاب */
+        h1 {
+            font-size: 2.8rem;
+            color: #ff7043;
+            -webkit-text-stroke: 2px #fff;
+            text-shadow: 2px 2px 0px #ffb74d, 4px 4px 10px rgba(0,0,0,0.2);
+            margin-bottom: 5px;
+            line-height: 1.2;
+        }
+
+        .author-text {
+            font-size: 1.1rem;
+            color: #0288d1;
+            margin-bottom: 15px;
+            font-weight: bold;
+            background: rgba(2, 136, 209, 0.1);
+            padding: 5px 15px;
+            border-radius: 20px;
+        }
+
+        .lang-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .lang-btn {
+            padding: 10px 20px;
+            font-size: 1.1rem;
+            border: 3px solid #b0bec5;
+            border-radius: 15px;
+            background: #fff;
+            cursor: pointer;
+            font-weight: bold;
+            color: #455a64;
+            transition: 0.2s;
+        }
+
+        .lang-btn.active {
+            background: #0288d1;
+            color: #fff;
+            border-color: #0288d1;
+            transform: scale(1.05);
+        }
+
+        .prompt-text {
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            color: #0277bd;
+            font-weight: bold;
+        }
+
+        .setup-controls {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 20px;
+            border-radius: 25px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.05);
+            width: 95%;
+            max-width: 350px;
+            margin-bottom: 20px;
+            border: 2px dashed #81d4fa;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .input-group label {
+            font-size: 1.2rem;
+            margin-bottom: 8px;
+            color: #455a64;
+            font-weight: bold;
+        }
+
+        .input-group select {
+            width: 100%;
+            padding: 12px;
+            font-size: 1.3rem;
+            border: 3px solid #b0bec5;
+            border-radius: 15px;
+            background: #fff;
+            outline: none;
+            font-family: inherit;
+            color: #263238;
+            font-weight: bold;
+        }
+
+        #setup-error {
+            color: var(--wrong-color);
+            font-size: 1rem;
+            margin-bottom: 15px;
+            display: none;
+            font-weight: bold;
+        }
+
+        .btn {
+            padding: 15px 30px;
+            font-size: 1.5rem;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+            color: white;
+            box-shadow: 0 8px 0 rgba(0,0,0,0.15);
+            transition: transform 0.1s, box-shadow 0.1s;
+            font-family: inherit;
+            width: 100%;
+            max-width: 300px;
+            margin: 10px 0;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn:active {
+            transform: translateY(8px);
+            box-shadow: 0 0 0 rgba(0,0,0,0);
+        }
+
+        .btn-start { background-color: var(--accent-btn); }
+        
+        .btn-option { 
+            background-color: var(--card-bg); 
+            color: var(--text-color);
+            border: 4px solid var(--secondary-btn);
+            min-height: 90px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 20px;
+            direction: ltr;
+            box-shadow: 0 6px 0 var(--secondary-btn);
+        }
+        .btn-option:active {
+            transform: translateY(6px);
+            box-shadow: 0 0 0 var(--secondary-btn);
+        }
+
+        .progress-bar {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 25px;
+            max-width: 100%;
+        }
+
+        .dot {
+            width: 16px;
+            height: 16px;
+            background-color: #cfd8dc;
+            border-radius: 50%;
+            transition: background-color 0.3s, transform 0.3s;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .dot.filled { 
+            background-color: #ffca28; 
+            transform: scale(1.2);
+            box-shadow: 0 0 10px #ffca28;
+        }
+
+        .display-area {
+            flex-grow: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            margin-bottom: 20px;
+            min-height: 130px;
+        }
+
+        .big-number {
+            font-size: 6rem;
+            font-weight: bold;
+            color: #ff5722;
+            text-shadow: 3px 3px 0px #ffe0b2;
+        }
+
+        .sequence-text {
+            font-size: 3.5rem;
+            letter-spacing: 5px;
+            color: #009688;
+            font-weight: bold;
+            text-shadow: 2px 2px 0px #b2dfdb;
+        }
+
+        .emoji-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 8px;
+            font-size: 2.5rem;
+            max-width: 250px;
+        }
+
+        .options-area {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 10px;
+        }
+
+        .options-area.row-layout {
+            flex-direction: row;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .options-area.row-layout .btn-option {
+            width: 45%;
+            font-size: 2.2rem;
+            padding: 10px;
+        }
+
+        .feedback {
+            font-size: 1.8rem;
+            font-weight: bold;
+            height: 40px;
+            margin-bottom: 10px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .feedback.show { opacity: 1; }
+        .feedback.correct { color: var(--correct-color); }
+        .feedback.wrong { color: var(--wrong-color); }
+
+        .stars-container {
+            font-size: 3rem;
+            margin: 20px 0;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 5px;
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        .anim-correct { 
+            animation: bounce 0.5s ease; 
+            background-color: #c8e6c9 !important; 
+            border-color: var(--correct-color) !important; 
+            box-shadow: 0 6px 0 var(--correct-color) !important;
+        }
+        .anim-wrong { 
+            animation: shake 0.4s ease; 
+            background-color: #ffcdd2 !important; 
+            border-color: var(--wrong-color) !important; 
+            box-shadow: 0 6px 0 var(--wrong-color) !important;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Setup Screen -->
+    <div id="setup-screen" class="screen active">
+        <h1 id="title-text">Number Adventure</h1>
+        <div id="author-text" class="author-text">Designed by Tr. Sara Nabil</div>
+        
+        <div class="lang-controls">
+            <button class="lang-btn active" id="btn-en" onclick="setLanguage('en')">English</button>
+            <button class="lang-btn" id="btn-ar" onclick="setLanguage('ar')">عربي</button>
+        </div>
+
+        <div class="setup-controls">
+            <div id="setup-error">End number must be equal or greater than Start number!</div>
+            
+            <div class="input-group">
+                <label for="start-num" id="label-start">Start Number:</label>
+                <select id="start-num">
+                    <option value="1" selected>1</option>
+                    <option value="2">2</option><option value="3">3</option>
+                    <option value="4">4</option><option value="5">5</option>
+                    <option value="6">6</option><option value="7">7</option>
+                    <option value="8">8</option><option value="9">9</option>
+                    <option value="10">10</option>
+                </select>
+            </div>
+            
+            <div class="input-group">
+                <label for="end-num" id="label-end">End Number:</label>
+                <select id="end-num">
+                    <option value="1">1</option><option value="2">2</option>
+                    <option value="3">3</option><option value="4">4</option>
+                    <option value="5">5</option><option value="6">6</option>
+                    <option value="7">7</option><option value="8">8</option>
+                    <option value="9">9</option><option value="10" selected>10</option>
+                </select>
+            </div>
+        </div>
+        <button class="btn btn-start" id="btn-start-game" onclick="startGame()">Start Game</button>
+    </div>
+
+    <!-- Game Screen -->
+    <div id="game-screen" class="screen">
+        <div class="progress-bar" id="progress-bar"></div>
+        
+        <div id="prompt" class="prompt-text">Find the number!</div>
+        <div id="display" class="display-area"></div>
+        <div id="feedback" class="feedback">Great job!</div>
+        <div id="options" class="options-area"></div>
+    </div>
+
+    <!-- End Screen -->
+    <div id="end-screen" class="screen">
+        <h1 id="end-title">Congratulations!</h1>
+        <div class="stars-container" id="stars-container"></div>
+        <button class="btn btn-start" id="btn-play-again" onclick="replayGame()" style="background-color: var(--secondary-btn);">Play Again</button>
+        <button class="btn" id="btn-change-nums" onclick="showSetup()" style="background-color: #90a4ae;">Change Numbers</button>
+    </div>
+
+    <script>
+        const translations = {
+            en: {
+                title: "Number Adventure",
+                author: "Designed by Tr. Sara Nabil",
+                lblStart: "Start Number:",
+                lblEnd: "End Number:",
+                error: "End number must be equal or greater than Start number!",
+                btnStart: "Start Game",
+                congrats: "Congratulations! 🥳",
+                btnAgain: "Play Again",
+                btnChange: "Change Numbers",
+                msgCorrect: "Great job! ✨",
+                msgWrong: "Try again!",
+                activities: [
+                    "Find the number!",            
+                    "Count the apples!",           
+                    "Match the stars!",            
+                    "Count the dots!",             
+                    "Find the balloon!",           
+                    "Count the puppies!",          
+                    "Match the cars!",             
+                    "What comes next?",            
+                    "Count the hearts!",           
+                    "Find the gift!"               
+                ]
+            },
+            ar: {
+                title: "مغامرة الأرقام",
+                author: "تصميم: أ. سارة نبيل",
+                lblStart: "رقم البداية:",
+                lblEnd: "رقم النهاية:",
+                error: "يجب أن يكون رقم النهاية أكبر من أو يساوي رقم البداية!",
+                btnStart: "ابدأ اللعبة",
+                congrats: "أحسنت صنعاً! 🥳",
+                btnAgain: "العب مرة أخرى",
+                btnChange: "تغيير الأرقام",
+                msgCorrect: "ممتاز! ✨",
+                msgWrong: "حاول مرة أخرى!",
+                activities: [
+                    "ابحث عن الرقم!",              
+                    "عُد التفاحات!",               
+                    "طابق النجوم!",                
+                    "عُد النقاط!",                 
+                    "ابحث عن البالون!",            
+                    "عُد الكلاب الصغيرة!",         
+                    "طابق السيارات!",              
+                    "ما هو الرقم التالي؟",         
+                    "عُد القلوب!",                 
+                    "ابحث عن الهدية!"              
+                ]
+            }
+        };
+
+        const state = {
+            lang: 'en',
+            startNum: 1,
+            endNum: 10,
+            currentStep: 0,
+            totalSteps: 10,
+            isLocked: false
+        };
+
+        function formatNumber(num) {
+            if (state.lang === 'ar') {
+                const arabicNumbers = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
+                return String(num).split('').map(d => arabicNumbers[d] || d).join('');
+            }
+            return String(num);
+        }
+
+        function setLanguage(lang) {
+            state.lang = lang;
+            
+            document.documentElement.lang = lang;
+            document.documentElement.dir = (lang === 'ar') ? 'rtl' : 'ltr';
+            
+            document.getElementById('btn-en').classList.toggle('active', lang === 'en');
+            document.getElementById('btn-ar').classList.toggle('active', lang === 'ar');
+
+            const t = translations[lang];
+            document.getElementById('title-text').innerText = t.title;
+            document.getElementById('author-text').innerText = t.author;
+            document.getElementById('label-start').innerText = t.lblStart;
+            document.getElementById('label-end').innerText = t.lblEnd;
+            document.getElementById('setup-error').innerText = t.error;
+            document.getElementById('btn-start-game').innerText = t.btnStart;
+            
+            document.getElementById('end-title').innerText = t.congrats;
+            document.getElementById('btn-play-again').innerText = t.btnAgain;
+            document.getElementById('btn-change-nums').innerText = t.btnChange;
+
+            ['start-num', 'end-num'].forEach(id => {
+                const select = document.getElementById(id);
+                Array.from(select.options).forEach(opt => {
+                    opt.text = formatNumber(opt.value);
+                });
+            });
+        }
+
+        const progressBar = document.getElementById('progress-bar');
+        for(let i=0; i<state.totalSteps; i++) {
+            progressBar.innerHTML += '<div class="dot"></div>';
+        }
+
+        const starsContainer = document.getElementById('stars-container');
+        for(let i=0; i<state.totalSteps; i++) {
+            starsContainer.innerHTML += '⭐';
+        }
+
+        function startGame() {
+            const startVal = parseInt(document.getElementById('start-num').value);
+            const endVal = parseInt(document.getElementById('end-num').value);
+            const errorEl = document.getElementById('setup-error');
+
+            if (endVal < startVal) {
+                errorEl.style.display = 'block';
+                return;
+            }
+
+            errorEl.style.display = 'none';
+            state.startNum = startVal;
+            state.endNum = endVal;
+            state.currentStep = 0;
+
+            switchScreen('game-screen');
+            loadActivity();
+        }
+
+        function replayGame() {
+            state.currentStep = 0;
+            switchScreen('game-screen');
+            loadActivity();
+        }
+
+        function showSetup() {
+            switchScreen('setup-screen');
+        }
+
+        function switchScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+        }
+
+        function getRandomInt(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
+        function shuffle(array) {
+            return array.sort(() => Math.random() - 0.5);
+        }
+
+        function getChoices(correctAnswer, count) {
+            let choices = new Set();
+            choices.add(correctAnswer);
+
+            let rangeArr = [];
+            for (let i = state.startNum; i <= state.endNum; i++) {
+                if (i !== correctAnswer) rangeArr.push(i);
+            }
+            rangeArr = shuffle(rangeArr);
+            
+            for (let num of rangeArr) {
+                if (choices.size < count) choices.add(num);
+            }
+
+            if (choices.size < count) {
+                let fullArr = shuffle([1,2,3,4,5,6,7,8,9,10]);
+                for (let num of fullArr) {
+                    if (choices.size < count && num !== correctAnswer) choices.add(num);
+                }
+            }
+            return shuffle(Array.from(choices));
+        }
+
+        function updateProgress() {
+            const dots = document.querySelectorAll('.dot');
+            dots.forEach((dot, index) => {
+                if (index < state.currentStep) dot.classList.add('filled');
+                else dot.classList.remove('filled');
+            });
+        }
+
+        function loadActivity() {
+            if (state.currentStep >= state.totalSteps) {
+                switchScreen('end-screen');
+                return;
+            }
+
+            state.isLocked = false;
+            updateProgress();
+            
+            const display = document.getElementById('display');
+            const options = document.getElementById('options');
+            const prompt = document.getElementById('prompt');
+            const feedback = document.getElementById('feedback');
+            
+            display.innerHTML = '';
+            options.innerHTML = '';
+            options.className = 'options-area';
+            feedback.className = 'feedback';
+            
+            let rangeSize = state.endNum - state.startNum + 1;
+            let activityType = state.currentStep; 
+
+            if (rangeSize < 3 && activityType === 7) activityType = 0; 
+            
+            const promptsArray = translations[state.lang].activities;
+
+            switch(activityType) {
+                case 0: renderFind(prompt, display, options, promptsArray[0]); break;
+                case 1: renderCountTheme(prompt, display, options, '🍎', promptsArray[1]); break;
+                case 2: renderMatchTheme(prompt, display, options, '⭐', promptsArray[2]); break;
+                case 3: renderDots(prompt, display, options, promptsArray[3]); break;
+                case 4: renderFindTheme(prompt, display, options, '🎈', promptsArray[4]); break;
+                case 5: renderCountTheme(prompt, display, options, '🐶', promptsArray[5]); break;
+                case 6: renderMatchTheme(prompt, display, options, '🚗', promptsArray[6]); break;
+                case 7: renderNext(prompt, display, options, promptsArray[7]); break;
+                case 8: renderCountTheme(prompt, display, options, '❤️', promptsArray[8]); break;
+                case 9: renderFindTheme(prompt, display, options, '🎁', promptsArray[9]); break;
+                default: renderFind(prompt, display, options, promptsArray[0]); break;
+            }
+        }
+
+        function renderFind(prompt, display, options, text) {
+            prompt.innerText = text;
+            let target = getRandomInt(state.startNum, state.endNum);
+            display.innerHTML = `<div class="big-number">${formatNumber(target)}</div>`;
+            options.classList.add('row-layout');
+            getChoices(target, 4).forEach(num => options.appendChild(createOptionButton(formatNumber(num), num === target)));
+        }
+
+        function renderCountTheme(prompt, display, options, emoji, text) {
+            prompt.innerText = text;
+            let target = getRandomInt(state.startNum, state.endNum);
+            let html = '<div class="emoji-container">';
+            for(let i=0; i<target; i++) html += `<span>${emoji}</span>`;
+            html += '</div>';
+            display.innerHTML = html;
+            options.classList.add('row-layout');
+            getChoices(target, 4).forEach(num => options.appendChild(createOptionButton(formatNumber(num), num === target)));
+        }
+
+        function renderMatchTheme(prompt, display, options, emoji, text) {
+            prompt.innerText = text;
+            let target = getRandomInt(state.startNum, state.endNum);
+            display.innerHTML = `<div class="big-number">${formatNumber(target)}</div>`;
+            getChoices(target, 3).forEach(num => {
+                let html = '<div class="emoji-container" style="font-size:2rem; gap:4px; direction:ltr;">';
+                for(let i=0; i<num; i++) html += `<span>${emoji}</span>`;
+                html += '</div>';
+                options.appendChild(createOptionButton(html, num === target));
+            });
+        }
+
+        function renderFindTheme(prompt, display, options, emoji, text) {
+            prompt.innerText = text;
+            let target = getRandomInt(state.startNum, state.endNum);
+            display.innerHTML = `<div class="big-number">${formatNumber(target)}</div>`;
+            options.classList.add('row-layout');
+            getChoices(target, 4).forEach(num => {
+                options.appendChild(createOptionButton(`${emoji} ${formatNumber(num)}`, num === target));
+            });
+        }
+
+        function renderDots(prompt, display, options, text) {
+            prompt.innerText = text;
+            let target = getRandomInt(state.startNum, state.endNum);
+            let html = `<div class="emoji-container" style="background:#fff; border:4px solid #b0bec5; border-radius:20px; padding:15px; min-width:120px; justify-content:center; direction:ltr; box-shadow:inset 0 4px 8px rgba(0,0,0,0.1);">`;
+            for(let i=0; i<target; i++) html += `<span>🔵</span>`;
+            html += '</div>';
+            display.innerHTML = html;
+            options.classList.add('row-layout');
+            getChoices(target, 4).forEach(num => options.appendChild(createOptionButton(formatNumber(num), num === target)));
+        }
+
+        function renderNext(prompt, display, options, text) {
+            prompt.innerText = text;
+            let seqStart = getRandomInt(state.startNum, state.endNum - 2);
+            let target = seqStart + 2;
+            let comma = state.lang === 'ar' ? '،' : ',';
+            let qmark = state.lang === 'ar' ? '؟' : '?';
+            display.innerHTML = `<div class="sequence-text">${formatNumber(seqStart)}${comma} ${formatNumber(seqStart+1)}${comma} ${qmark}</div>`;
+            options.classList.add('row-layout');
+            getChoices(target, 4).forEach(num => options.appendChild(createOptionButton(formatNumber(num), num === target)));
+        }
+
+        function createOptionButton(content, isCorrect) {
+            let btn = document.createElement('button');
+            btn.className = 'btn btn-option';
+            btn.innerHTML = content;
+            btn.onclick = () => handleChoice(btn, isCorrect);
+            return btn;
+        }
+
+        function handleChoice(btn, isCorrect) {
+            if (state.isLocked) return;
+            const feedback = document.getElementById('feedback');
+            const msgs = translations[state.lang];
+            
+            if (isCorrect) {
+                state.isLocked = true;
+                btn.classList.add('anim-correct');
+                feedback.innerText = msgs.msgCorrect;
+                feedback.className = 'feedback show correct';
+                
+                setTimeout(() => {
+                    state.currentStep++;
+                    loadActivity();
+                }, 1300);
+            } else {
+                btn.classList.add('anim-wrong');
+                feedback.innerText = msgs.msgWrong;
+                feedback.className = 'feedback show wrong';
+                
+                setTimeout(() => {
+                    btn.classList.remove('anim-wrong');
+                    feedback.classList.remove('show');
+                }, 900);
+            }
+        }
+
+        setLanguage('en');
+    </script>
+</body>
+</html>
